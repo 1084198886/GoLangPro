@@ -1,0 +1,324 @@
+syntax = "proto3";
+
+option go_package = "supwisdom.com/weigh_dc/agent/proto";
+option java_package = "com.supwisdom.weigh.grpc";
+option java_outer_classname = "WeighUtil";
+
+enum WeighingScaleStatus {
+  OFFLINE = 0;
+  EMPTY = 1;
+  IN_TRANSACTION = 2;
+  HW_ERROR = 3;
+  ALERT = 4;
+}
+
+enum AgentStatus {
+  CLOSED = 0;
+  SYSTEM_ERROR = 1;
+  OPEN = 2;
+}
+
+enum DishBindStatus {
+  NEW = 0;
+  ALREADY_EXISTS = 1;
+}
+
+// 称重台签到请求
+message WeighingScaleLogin {
+  string termno = 1; // 称重设备编号
+  string timestamp = 2;
+  WeighingScaleStatus status = 3;
+}
+
+// 称重台签到应答
+message WeighingScaleLoginResponse {
+  string system_timestamp = 1;
+  string access_key = 2;
+  AgentStatus system_status = 3;
+  int32 device_id = 4; //代理机号
+  int32 heart_gap = 5;
+  string food_ver_no = 6;
+  int32 para_ver_no = 7;
+  string retjson = 8;
+}
+
+
+// 称重台心跳请求
+message WeighingScaleHeartBeat {
+  string termno = 1;
+  string access_key = 2;
+  WeighingScaleStatus status = 3;
+  string sold_food_id = 4;
+  string sold_food_updatetime = 5;
+  int32 food_weight = 6; 
+}
+
+message WeighingParam {
+  string key = 1;
+  string value = 2;
+}
+
+// 称重台心跳应答
+message WeighingScaleResponse {
+  AgentStatus system_status = 1;
+  string system_timestamp = 2;
+  string sold_food_id = 3;
+  string sold_food_updatetime = 4;
+  string soft_version = 5;
+  int32 heart_gap = 6;
+  string food_ver_no = 7;
+  int32 para_ver_no = 8;
+  int32 alarm = 9;
+  string retjson = 10;
+  repeated WeighingParam params = 11;
+}
+
+// 绑定餐盘请求
+message BindDishRequest {
+  string dish_id = 1;
+  string stuempno = 2;
+  int32 cardno = 3;
+  string cardphyid = 4;
+  int32 feerate = 5;
+  int32 account_bala = 6;
+  bool offline = 7;
+  string custname = 8;
+  string source = 9;
+  string expire_date = 10;
+  string seqno = 11;
+  string termid = 12;
+  string paymode = 13;
+  string refno = 14;
+}
+
+// 绑定餐盘应答
+message BindDishResponse {
+  string billno = 1;
+  DishBindStatus bindStatus = 2;
+  string stuempno = 3;
+  int32 cardno = 4;
+  string cardphyid = 5;
+  string custname = 6;
+}
+
+// 解绑餐盘请求
+message UnbindDishRequest {
+  string dish_id = 1;
+}
+
+// 解绑餐盘应答
+message UnbindDishResponse {
+  string billno = 1;
+  string stuempno = 2;
+  string custname = 3;
+  int32 amount = 4;
+  int32 free_balance = 5;
+}
+
+// 查询托盘订单
+message DishQueryRequest {
+  string dish_id = 1;
+}
+
+// 查询托盘订单结果
+message DishQueryResponse {
+  string billno = 1;
+  string stuempno = 2;
+  string custname = 3;
+  int32 amount = 4;
+  int32 balance = 5;
+  string status = 6;
+  string paymode = 7;
+  repeated DishTransDetail details = 8;
+}
+
+// 订单确认请求
+message TransConfirmRequest {
+  string dish_id  = 1;
+  string billno = 2;
+  int32 pay_amount = 3;
+  string external_refno = 4;
+  string pay_date = 5;
+  string pay_time = 6;
+  string pay_source = 7;
+  string remark = 8;
+}
+// 订单确认请求应答
+message TransConfirmResponse {
+  string billno = 1;
+}
+
+// 餐盘初始化请求
+message InitDishRequest {
+  string access_key = 1;
+  string dish_id = 3;
+  string food_id = 4;
+  int32 food_weight = 5;
+  bool force_query = 6;
+  string termno = 7;
+  string termid = 8;
+}
+
+// 餐盘初始化应答
+message InitDishResponse {
+  string stuempno = 1;
+  string custname = 2;
+  int32 account_bala = 3;
+  int32 amount = 4;
+  int32 feerate = 5;
+  string message = 6;
+  bool offline = 7;
+  string billno = 8;
+  int32 expire_minutes = 9;
+  string paymode = 10;
+}
+
+// 餐盘消费确认请求
+message ConfirmDishRequest {
+  string access_key = 1;
+  int32 price = 2;
+  string dish_id = 3;
+  string food_id = 4;
+  int32 buy_weight = 5;
+  int32 amount = 6;
+  string billno = 7;
+  int32 unit = 8;
+  string device_seqno = 9;
+  string food_name = 10;
+  string termno = 11;
+  int32 buy_num = 12;
+}
+
+// 菜品消费明细
+message DishTransDetail {
+  string food_id = 1;
+  string food_name = 2;
+  int32 amount = 3;
+  int32 weight = 4;
+  int32 price = 5;
+  int32 unit = 6;
+  int32 qty = 7;
+  string termno = 8;
+  string device_seqno = 9;
+  string flag = 10;
+}
+
+// 餐盘消费确认应答
+message ConfirmDishResponse {
+  string result = 1;
+  string message = 2;
+  int32 account_bala = 3;
+  repeated DishTransDetail details = 4;
+}
+
+message WeighingScaleEvent {
+  string access_key = 1;
+  string event = 2;
+  string message = 3;
+  WeighingScaleStatus status = 4;
+}
+
+// 菜品下载请求
+message DownloadFoodRequest {
+  string access_key = 1;
+  string food_verno = 2;
+  string termno = 3;
+}
+
+// 菜品下载信息应答
+message FoodResponse {
+  string food_verno = 1;
+  string retjson = 2;
+}
+
+// 餐次下载请求
+message DownloadMealRequest {
+  string access_key = 1;
+  string termno = 2;
+}
+
+// 餐次应答
+message MealResponse {
+  string retjson = 1;
+}
+// 参数下载
+message DownloadSysParaRequest {
+  string access_key = 1;
+  string termno = 2;
+  int32 para_ver_no = 3;
+}
+
+message SysparaResponse {
+  int32 para_ver_no = 1;
+  string retjson = 2;
+}
+
+// 餐台操作信息上传
+message WeighActionRequest{
+  string access_key = 1;
+  string termno = 2;
+  string action = 3;
+  string remark = 4;
+}
+
+message WeighActionResponse{
+  string retjson = 1;
+}
+//流水查询
+message TransQueryRequest{
+  string date = 1;
+  int32 trans_offset = 2;
+  int32 trans_count = 3;
+}
+
+message DishTransMain {
+	string billno = 1;
+  string stuempno = 2;
+  string custname = 3;
+  string transdate = 4;
+  string transtime = 5;
+  string dish_id = 6;
+	int32 amount = 7;
+  string paymode = 8;
+  string status = 9;
+  int32 detail_count = 10;
+  string refno = 11;
+  string expired = 12;
+  repeated DishTransDetail details = 13; 
+}
+message TransQueryResponse{
+  repeated DishTransMain trans = 1; 
+}
+
+message TransResetDishRequest{
+  string billno = 1;
+  string dish_id = 2;
+  string termno = 3;
+  string food_id = 4;
+  string device_seqno = 5;
+  int32 amount = 6;
+}
+message TransResetDishResponse{
+  string retjson = 1;
+}
+
+service WeighScaleDevice {
+  rpc Login(WeighingScaleLogin) returns (WeighingScaleLoginResponse) {}
+  rpc HeartBeat(WeighingScaleHeartBeat) returns (WeighingScaleResponse) {}
+  rpc InitDish(InitDishRequest) returns (InitDishResponse) {}
+  rpc ConfirmDish(ConfirmDishRequest) returns (ConfirmDishResponse) {}
+  rpc EmitEvent(WeighingScaleEvent) returns (WeighingScaleResponse) {}
+  rpc DownloadFood(DownloadFoodRequest) returns (FoodResponse) {}
+  rpc DownloadMeal(DownloadMealRequest) returns (MealResponse) {}
+  rpc DownloadSysPara(DownloadSysParaRequest) returns (SysparaResponse) {}
+  rpc UploadWeighAction(WeighActionRequest) returns (WeighActionResponse){}
+}
+
+service BindDevice {
+  rpc BindDish(BindDishRequest) returns (BindDishResponse) {}
+  rpc UnbindDish(UnbindDishRequest) returns (UnbindDishResponse) {}
+  rpc TransConfirm(TransConfirmRequest) returns (TransConfirmResponse) {}
+  rpc QueryDish(DishQueryRequest) returns (DishQueryResponse) {}
+  rpc QueryTrans(TransQueryRequest) returns (TransQueryResponse) {}
+  rpc TransResetDish(TransResetDishRequest) returns (TransResetDishResponse) {}
+}

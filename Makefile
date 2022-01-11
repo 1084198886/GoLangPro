@@ -6,7 +6,6 @@ RM ?=rm
 VERSION ?=$(shell git describe --tags --abbrev=6 --always --dirty)
 BUILD_DATE ?=$(shell date '+%Y-%m-%d %H:%M:%S %Z')
 
-
 .PHONY: clean build generate client dist
 
 build:
@@ -14,7 +13,7 @@ build:
 	$(GO) build -v -o $(OUTPUT)/ cmd/weight_agent.go
 
 generate:
-	$(GO) generate -v -x ./gormio
+	$(GO) generate -v -x ./agent
 
 bootstrap: generate
 	$(GO) mod vendor
@@ -22,20 +21,20 @@ bootstrap: generate
 server: generate
 	GOOS=linux GOARCH=amd64 $(GO) build -v \
 		-ldflags 'main.Version="$(VERSION)" main.BuildDate="$(BUILD_DATE)"' \
-		-o $(DIST)/go_demo_$(VERSION) ./gormio
+		-o $(DIST)/go_demo_$(VERSION) ./agent
 
 client:
 	$(GO) generate ./client
 	$(GO) build -v -o build/ ./client/*.go
 
 test: bootstrap
-	$(GO) test ./gormio
+	$(GO) test ./agent
 
 mobile: test
 	$(RM) -rf vendor
 	mkdir -p dist
-	$(GOMOBILE) bind -v -target=android/arm64 -classpath com.go.demo \
-		-o $(DIST)/com.godemo_$(VERSION).aar ./gormio
+	$(GOMOBILE) bind -v -target=android/arm64 -classpath com.supwisdom.diancan \
+		-o $(DIST)/godemo_$(VERSION).aar ./agent
 
 clean:
 	$(RM) -rf $(OUTPUT)/*
